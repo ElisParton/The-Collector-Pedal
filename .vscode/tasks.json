@@ -2,24 +2,19 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build-pa",
+            "label": "build testann",
             "type": "shell",
-            "command": "C:/msys64/mingw64/bin/gcc.exe",
+            "command": "C:/msys64/ucrt64/bin/gcc.exe",
             "args": [
-                "main.c",
-                "-o", "main.exe",
-
-                // include path
-                "-IC:/msys64/mingw64/include",
-
-                // library search path
-                "-LC:/msys64/mingw64/lib",
-
-                // link libraries
-                "-lportaudio",
-                "-lwinmm"
+                "${file}",
+                "C:/Users/eyqp2/Desktop/The Collector Pedal - Testing/ann.c",
+                "C:/Users/eyqp2/Desktop/The Collector Pedal - Testing/tensor.c",
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}.exe",
+                "-I${fileDirname}",
+                "-lm"
             ],
-            "group": { "kind": "build", "isDefault": true },
+            "group": "build",
             "problemMatcher": "$gcc"
         }
     ]
