@@ -31,13 +31,11 @@ static inline void set_matrix_entry(Matrix* m, int r, int c, double v) {
     m->entries[r * m->cols + c] = v;
 }
 
-void matrix_multiplication(Matrix* C, const Matrix* A, const Matrix* B) {
+Matrix matrix_multiplication(const Matrix* A, const Matrix* B, double* buffer, int buf_len) {
+    Matrix C = create_matrix(A->rows, B->cols, buffer, buf_len);
     assert(A != NULL);
     assert(B != NULL);
-    assert(C != NULL);
     assert(A->cols == B->rows);   
-    assert(C->rows == A->rows);   
-    assert(C->cols == B->cols);   
 
     for (int r = 0; r < A->rows; r++) {
         for (int c = 0; c < B->cols; c++) {
@@ -51,4 +49,7 @@ void matrix_multiplication(Matrix* C, const Matrix* A, const Matrix* B) {
             set(C, r, c, sum);
         }
     }
+    return C;
 }
+
+Matrix matrix_addition()
