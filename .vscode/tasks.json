@@ -2,13 +2,13 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build testann",
+            "label": "Cbuild",
             "type": "shell",
             "command": "C:/msys64/ucrt64/bin/gcc.exe",
             "args": [
+                "-g",
+                "-O0",
                 "${file}",
-                "C:/Users/eyqp2/Desktop/The Collector Pedal - Testing/ann.c",
-                "C:/Users/eyqp2/Desktop/The Collector Pedal - Testing/tensor.c",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}.exe",
                 "-I${fileDirname}",
