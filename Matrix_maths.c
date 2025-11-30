@@ -32,10 +32,10 @@ static inline void set_matrix_entry(Matrix* m, int r, int c, double v) {
 }
 
 Matrix matrix_multiplication(const Matrix* A, const Matrix* B, double* buffer, int buf_len) {
-    Matrix C = create_matrix(A->rows, B->cols, buffer, buf_len);
     assert(A != NULL);
     assert(B != NULL);
-    assert(A->cols == B->rows);   
+    assert(A->cols == B->rows);
+    Matrix C = create_matrix(A->rows, B->cols, buffer, buf_len);   
 
     for (int r = 0; r < A->rows; r++) {
         for (int c = 0; c < B->cols; c++) {
@@ -52,4 +52,17 @@ Matrix matrix_multiplication(const Matrix* A, const Matrix* B, double* buffer, i
     return C;
 }
 
-Matrix matrix_addition()
+Matrix matrix_addition(const Matrix* A, const Matrix* B, double* buffer, int buf_len) {
+    assert(A != NULL);
+    assert(B != NULL);
+    assert(A->cols == B->cols);
+    assert(A->rows == B->rows);
+    Matrix C = create_matrix(A->rows, A->cols, buffer, buf_len);
+    for (int r = 0; r < A->rows; r++) {
+        for (int c = 0; c < A->cols; c++) {
+            double sum = get(A, r, c) + get(B, r, c);
+            set(C, r, c, sum);
+        }
+    }
+}
+
