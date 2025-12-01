@@ -1,21 +1,21 @@
 #include "Matrix_maths.c"
 
-typedef struct Neural_Net_Layer {
+typedef struct NN_Layer {
     int neurons; // Number of neurons in the layer
     int outneurons; // Number of neurons in the next layer
     Matrix inputs; // Input vector to the layer
     Matrix weights; // Weight matrix for the layer
     Matrix biases;  // Bias vector for the layer
     Matrix outputs; // Output vector for the layer
-} Neural_Net_Layer;
+} NN_Layer;
 
-typedef struct Neural_Net {
+typedef struct Neural_Network {
     int num_layers; // Number of layers in the neural network
-    Neural_Net_Layer* layers; // Array of layers
-} Neural_Net;
+    NN_Layer* layers; // Array of layers
+} Neural_Network;
 
-Neural_Net_Layer neural_net_create_layer(int neurons, int outneurons, double* input_buffer, double* weight_buffer, double* bias_buffer, double* output_buffer) {
-    Neural_Net_Layer layer;
+NN_Layer NN_create_layer(int neurons, int outneurons, double* input_buffer, double* weight_buffer, double* bias_buffer, double* output_buffer) {
+    NN_Layer layer;
     layer.neurons = neurons;
     layer.outneurons = outneurons;
     layer.inputs = matrix_create(neurons, 1, input_buffer);
@@ -25,14 +25,14 @@ Neural_Net_Layer neural_net_create_layer(int neurons, int outneurons, double* in
     return layer;
 }
 
-Neural_Net neural_net_create(int num_layers, Neural_Net_Layer* layers) {
-    Neural_Net net;
+Neural_Network NN_create(int num_layers, NN_Layer* layers) {
+    Neural_Network net;
     net.num_layers = num_layers;
     net.layers = layers;
     return net;
 }
 
-Neural_Net_Layer neural_net_forward(const Neural_Net_Layer layer) {
+NN_Layer NN_forward(const NN_Layer layer) {
     double temp_buffer[layer.outneurons]; // Temporary buffer for matrix multiplication
     Matrix weighted_sum = matrix_multiplication(layer.weights, layer.inputs, temp_buffer);
     for (int i = 0; i < layer.outneurons; i++) {
@@ -42,10 +42,10 @@ Neural_Net_Layer neural_net_forward(const Neural_Net_Layer layer) {
     return layer;
 }
 
-Neural_Net neural_net_forward_pass(const Neural_Net net) {
-    Neural_Net current_net = net;
+Neural_Network NN_forward_pass(const Neural_Network net) {
+    Neural_Network current_net = net;
     for (int i = 0; i < net.num_layers; i++) {
-        current_net.layers[i] = neural_net_forward(current_net.layers[i]);
+        current_net.layers[i] = NN_forward(current_net.layers[i]);
         if (i < net.num_layers - 1) {
             current_net.layers[i + 1].inputs = current_net.layers[i].outputs;
         }
