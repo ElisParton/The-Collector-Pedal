@@ -9,6 +9,9 @@ typedef struct NN_Layer {
     Matrix weights; // Weight matrix for the layer
     Matrix biases;  // Bias vector for the layer
     Matrix outputs; // Output vector for the layer
+    Matrix deltas;  // Delta vector for backpropagation
+    double (*activation)(double); // Activation function pointer
+    double (*activation_derivative)(double); // Derivative of activation function pointer
 } NN_Layer;
 
 typedef struct Neural_Network {
@@ -77,3 +80,30 @@ double NN_Linear(double x) {
     return x;
 }
 
+NN_Layer NN_output_backpropagation(const NN_Layer layer, const Matrix target, double learning_rate) {
+    for (int i = 0; i < layer.outneurons; i++) {
+        double output = matrix_get_entry(layer.outputs, i, 0);
+        double output_activated = layer.activation(output);
+        double delta = (output_activated - matrix_get_entry(target, i, 0)) * layer.activation_derivative(output);
+        matrix_set_entry(layer.deltas, i, 0, delta);
+    }
+
+    //------------------
+    // UNCHECKED CODE
+    //------------------
+    // Update weights and biases
+    for (int r = 0; r < layer.outneurons; r++) {
+        for (int c = 0; c < layer.neurons; c++) {
+            double weight = matrix_get_entry(layer.weights, r, c);
+            double input = matrix_get_entry(layer.inputs, c, 0);
+            double delta = matrix_get_entry(layer.deltas, r, 0);
+            weight += learning_rate * delta * input;
+            matrix_set_entry(layer.weights, r, c, weight);
+        }
+        double bias = matrix_get_entry(layer.biases, r, 0);
+        double delta = matrix_get_entry(layer.deltas, r, 0);
+        bias += learning_rate * delta;
+        matrix_set_entry(layer.biases, r, 0, bias);
+    }
+    return layer;
+}
