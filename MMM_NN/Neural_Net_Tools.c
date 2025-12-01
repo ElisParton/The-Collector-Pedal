@@ -1,4 +1,4 @@
-#include "Matrix_maths.h"
+#include "Matrix_maths.c"
 
 typedef struct Neural_Net_Layer {
     int neurons; // Number of neurons in the layer
