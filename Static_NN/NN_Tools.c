@@ -33,6 +33,7 @@ NN_Layer NN_create_layer(int neurons, int outneurons, double* input_buffer, doub
     layer.weights = matrix_create(outneurons, neurons, weight_buffer);
     layer.biases = matrix_create(outneurons, 1, bias_buffer);
     layer.outputs = matrix_create(outneurons, 1, output_buffer);
+    layer.deltas = matrix_create(outneurons, 1, deltas_buffer);
     layer.activation = activation;
     layer.activation_derivative = activation_derivative;
     return layer;
