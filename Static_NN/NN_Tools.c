@@ -55,7 +55,7 @@ NN_Layer NN_forward(const NN_Layer layer) {
     }
     return layer;
 }
-
+// Potential error - Does the output layer have activation function applied?
 Neural_Network NN_forward_pass(const Neural_Network net) {
     Neural_Network current_net = net;
     for (int i = 0; i < net.num_layers; i++) {
@@ -157,4 +157,25 @@ Neural_Network NN_update_weights(Neural_Network net, double learning_rate) {
         current_net.layers[i] = layer;
     }
     return current_net;
+}
+
+double NN_MSE(Neural_Network net, const Matrix target) {
+    double error = 0;
+    int outneurons = net.layers[net.num_layers - 1].outneurons;
+    for (int i = 0; i < outneurons; i++) {
+        double predicted = matrix_get_entry(net.layers[net.num_layers - 1].outputs, i, 0);
+        double actual = matrix_get_entry(target, i, 0);
+        error += (predicted - actual)*(predicted - actual);
+    }
+    return error/outneurons;
+};
+
+double* file_to_buffer(const char* filename, int* buffer, int buf_len) {
+    FILE *fptr = fopen(filename, "rb");
+    if (fread(buffer, sizeof(int), buf_len, fptr) != buf_len) {
+    perror("Error reading file");
+    fclose(fptr);
+    return NULL;
+    }
+    return buffer;
 }
