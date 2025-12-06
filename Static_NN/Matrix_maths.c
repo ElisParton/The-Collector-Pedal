@@ -107,6 +107,25 @@ static inline void matrix_set_entry(Matrix m, int r, int c, double v) {
     m.entries[r * m.cols + c] = v;
 }
 
+Matrix matrix_slice(const Matrix A, int row_start, int row_end, int col_start, int col_end, double* buffer) {
+    assert(row_start >= 0 && row_start < A.rows);
+    assert(row_end > row_start && row_end <= A.rows);
+    assert(col_start >= 0 && col_start < A.cols);
+    assert(col_end > col_start && col_end <= A.cols);
+
+    int new_rows = row_end - row_start;
+    int new_cols = col_end - col_start;
+    Matrix S = matrix_create(new_rows, new_cols, buffer);
+
+    for (int r = 0; r < new_rows; r++) {
+        for (int c = 0; c < new_cols; c++) {
+            double val = matrix_get_entry(A, row_start + r, col_start + c);
+            matrix_set_entry(S, r, c, val);
+        }
+    }
+    return S;
+}
+
 //--------------------
 //matrix_print
 //--------------------

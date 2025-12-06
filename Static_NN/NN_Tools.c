@@ -77,20 +77,20 @@ double ReLU_1(double x) {
     return (x > 0) ? 1 : 0;
 }
 
-double Sigmoid(double x) {
-    return 1.0 / (1.0 + exp(-x));
-}
-double Sigmoid_1(double x) {
-    double sig = Sigmoid(x);
-    return sig * (1 - sig);
-}
+// double Sigmoid(double x) {
+//     return 1.0 / (1.0 + exp(-x));
+// }
+// double Sigmoid_1(double x) {
+//     double sig = Sigmoid(x);
+//     return sig * (1 - sig);
+// }
 
-double Tanh(double x) {
-    return tanh(x);
-}
-double Tanh_1(double x) {
-    return (1 / cosh(x))*(1 / cosh(x));
-}
+// double Tanh(double x) {
+//     return tanh(x);
+// }
+// double Tanh_1(double x) {
+//     return (1 / cosh(x))*(1 / cosh(x));
+// }
 
 double Linear(double x) {
     return x;
@@ -170,12 +170,12 @@ double NN_MSE(Neural_Network net, const Matrix target) {
     return error/outneurons;
 };
 
-double* file_to_buffer(const char* filename, int* buffer, int buf_len) {
-    FILE *fptr = fopen(filename, "rb");
-    if (fread(buffer, sizeof(int), buf_len, fptr) != buf_len) {
-    perror("Error reading file");
-    fclose(fptr);
-    return NULL;
-    }
-    return buffer;
-}
+// double* file_to_buffer(const char* filename, int* buffer, int buf_len) {
+//     FILE *fptr = fopen(filename, "rb");
+//     if (fread(buffer, sizeof(int), buf_len, fptr) != buf_len) {
+//     perror("Error reading file");
+//     fclose(fptr);
+//     return NULL;
+//     }
+//     return buffer;
+// }
