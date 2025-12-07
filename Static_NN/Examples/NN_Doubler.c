@@ -1,4 +1,4 @@
-#include "NN_Tools.c"
+#include "../NN_Tools.c"
 #include <stdlib.h>
 
 int main(/*int argc, char *argv[]*/) {
@@ -70,7 +70,7 @@ int main(/*int argc, char *argv[]*/) {
             error += NN_MSE(net, target);
         }
         printf("Epoch %d, MSE: %f\n", epoch, error);
-        NN_update_weights(net, 0.00001);
+        NN_update_weights(net, 0.0001);
     }
     while (1) {
         double myNum;
