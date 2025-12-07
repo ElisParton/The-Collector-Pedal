@@ -57,17 +57,16 @@ NN_Layer NN_forward(const NN_Layer layer) {
 }
 // Potential error - Does the output layer have activation function applied?
 Neural_Network NN_forward_pass(const Neural_Network net) {
-    Neural_Network current_net = net;
     for (int i = 0; i < net.num_layers; i++) {
-        current_net.layers[i] = NN_forward(current_net.layers[i]);
+        net.layers[i] = NN_forward(net.layers[i]);
         if (i < net.num_layers - 1) {
-            for (int r = 0; r < current_net.layers[i].outneurons; r++) {
-                double activated_value = current_net.layers[i].activation(matrix_get_entry(current_net.layers[i].outputs, r, 0));
-                matrix_set_entry(current_net.layers[i + 1].inputs, r, 0, activated_value);
+            for (int r = 0; r < net.layers[i].outneurons; r++) {
+                double activated_value = net.layers[i].activation(matrix_get_entry(net.layers[i].outputs, r, 0));
+                matrix_set_entry(net.layers[i + 1].inputs, r, 0, activated_value);
             }
         }
     }
-    return current_net;
+    return net;
 }
 
 double ReLU(double x) {
@@ -104,7 +103,7 @@ NN_Layer NN_output_delta(const NN_Layer layer, const Matrix target) {
         double output = matrix_get_entry(layer.outputs, i, 0);
         double output_activated = layer.activation(output);
         double delta = (output_activated - matrix_get_entry(target, i, 0)) * layer.activation_derivative(output);
-        matrix_set_entry(layer.deltas, i, 0, delta);
+        matrix_set_entry(layer.deltas, i, 0, matrix_get_entry(layer.deltas, i, 0) + delta);
     }
     return layer;
 }
@@ -120,27 +119,25 @@ NN_Layer NN_hidden_delta(const NN_Layer layer, const NN_Layer next_layer) {
         double output = matrix_get_entry(layer.outputs, i, 0);
         double output_activated = layer.activation(output);
         double delta = sum * layer.activation_derivative(output);
-        matrix_set_entry(layer.deltas, i, 0, delta);
+        matrix_set_entry(layer.deltas, i, 0, matrix_get_entry(layer.deltas, i, 0) + delta);
     }
     return layer;
 }
 
 Neural_Network NN_backward_pass(Neural_Network net, const Matrix target) {
-    Neural_Network current_net = net;
     for (int i = net.num_layers - 1; i >= 0; i--) {
         if (i == net.num_layers - 1) {
-            current_net.layers[i] = NN_output_delta(current_net.layers[i], target);
+            net.layers[i] = NN_output_delta(net.layers[i], target);
         } else {
-            current_net.layers[i] = NN_hidden_delta(current_net.layers[i], current_net.layers[i + 1]);
+            net.layers[i] = NN_hidden_delta(net.layers[i], net.layers[i + 1]);
         }
     }
-    return current_net;
+    return net;
 }
 
 Neural_Network NN_update_weights(Neural_Network net, double learning_rate) {
-    Neural_Network current_net = net;
     for (int i = 0; i < net.num_layers; i++) {
-        NN_Layer layer = current_net.layers[i];
+        NN_Layer layer = net.layers[i];
         for (int r = 0; r < layer.outneurons; r++) {
             for (int c = 0; c < layer.neurons; c++) {
                 double input = matrix_get_entry(layer.inputs, c, 0);
@@ -154,9 +151,12 @@ Neural_Network NN_update_weights(Neural_Network net, double learning_rate) {
             double new_bias = bias - learning_rate * delta;
             matrix_set_entry(layer.biases, r, 0, new_bias);
         }
-        current_net.layers[i] = layer;
+        net.layers[i] = layer;
+        for (int r = 0; r < layer.outneurons; r++) {
+            matrix_set_entry(net.layers[i].deltas, r, 0, 0.0);
+        }
     }
-    return current_net;
+    return net;
 }
 
 double NN_MSE(Neural_Network net, const Matrix target) {
