@@ -84,14 +84,15 @@ NN_Layer NN_forward(NN_Layer layer, Matrix inputs)
     assert(inputs.cols == 1);
     assert(layer.weights.rows == layer.neurons);
 
-    double temp_buffer[layer.neurons];                                                                     // Temporary buffer for matrix multiplication
-    Matrix weighted_sum = matrix_multiplication(layer.weights, inputs, temp_buffer);                       // Add weights * inputs
-    layer.biased_weighted_sums.entries = matrix_addition(weighted_sum, layer.biases, temp_buffer).entries; // Add biases and store in layer
+    double temp_buffer1[layer.neurons];
+    double temp_buffer2[layer.neurons];                                                                           // Temporary buffer for matrix multiplication
+    Matrix weighted_sum = matrix_multiplication(layer.weights, inputs, temp_buffer1);                             // Add weights * inputs
+    layer.biased_weighted_sums = matrix_addition(weighted_sum, layer.biases, layer.biased_weighted_sums.entries); // Add biases and store in layer
 
     return layer;
 }
 
-Neural_Network NN_forward_pass(const Neural_Network net)
+Neural_Network NN_forward_pass(Neural_Network net)
 {
     Matrix inputs = net.input_layer.inputs;
     for (int i = 0; i < net.num_layers; i++)
@@ -101,7 +102,7 @@ Neural_Network NN_forward_pass(const Neural_Network net)
         net.layers[i] = NN_forward(layer, inputs);
 
         // Apply activation function
-        matrix_map_to(layer.biased_weighted_sums, layer.activation.func, layer.activated_values);
+        matrix_map_to(layer.biased_weighted_sums, layer.activation.func, layer.activated_values.entries);
 
         // Set inputs for next layer
         inputs = layer.activated_values;
@@ -158,7 +159,7 @@ NN_Layer NN_output_delta(const NN_Layer layer, const Matrix target)
 
     Matrix difference = matrix_subtraction(output_activated, target, temp_buffer);
     Matrix output_derivd = matrix_map_to(output, layer.activation.deriv, temp_buffer2);
-    deltas = matrix_hadamard_product(difference, output_derivd, temp_buffer);
+    deltas = matrix_hadamard_product(difference, output_derivd, layer.deltas.entries);
     return layer;
 }
 
