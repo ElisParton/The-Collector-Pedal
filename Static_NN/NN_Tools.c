@@ -1,4 +1,4 @@
-#include "Matrix_maths.c"
+#include "Matrix_maths.h"
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
@@ -78,7 +78,7 @@ Neural_Network NN_create(int num_layers, NN_Input_Layer input, NN_Layer *layers)
     return net;
 }
 
-NN_Layer NN_forward(NN_Layer layer, Matrix inputs)
+void NN_forward(NN_Layer layer, Matrix inputs)
 {
     assert(inputs.rows == layer.weights.cols);
     assert(inputs.cols == 1);
@@ -88,18 +88,16 @@ NN_Layer NN_forward(NN_Layer layer, Matrix inputs)
     double temp_buffer2[layer.neurons];                                                                           // Temporary buffer for matrix multiplication
     Matrix weighted_sum = matrix_multiplication(layer.weights, inputs, temp_buffer1);                             // Add weights * inputs
     layer.biased_weighted_sums = matrix_addition(weighted_sum, layer.biases, layer.biased_weighted_sums.entries); // Add biases and store in layer
-
-    return layer;
 }
 
-Neural_Network NN_forward_pass(Neural_Network net)
+void NN_forward_pass(Neural_Network net)
 {
     Matrix inputs = net.input_layer.inputs;
     for (int i = 0; i < net.num_layers; i++)
     {
         NN_Layer layer = net.layers[i];
         // Propagate through each layer
-        net.layers[i] = NN_forward(layer, inputs);
+        NN_forward(layer, inputs);
 
         // Apply activation function
         matrix_apply_func(layer.biased_weighted_sums, layer.activation.func, layer.activated_values.entries);
@@ -107,7 +105,6 @@ Neural_Network NN_forward_pass(Neural_Network net)
         // Set inputs for next layer
         inputs = layer.activated_values;
     }
-    return net;
 }
 
 double ReLU(double x)
@@ -146,7 +143,7 @@ double Linear_1(double x)
 ActivationFunction ReLU_Activation = {ReLU, ReLU_1};
 ActivationFunction Linear_Activation = {Linear, Linear_1};
 
-NN_Layer NN_output_delta(const NN_Layer layer, const Matrix target)
+void NN_output_delta(NN_Layer layer, const Matrix target)
 {
     double temp_buffer[layer.neurons];
     double temp_buffer2[layer.neurons];
@@ -155,15 +152,12 @@ NN_Layer NN_output_delta(const NN_Layer layer, const Matrix target)
     Matrix output = layer.biased_weighted_sums;
     Matrix output_activated = layer.activated_values;
 
-    Matrix deltas = layer.deltas;
-
     Matrix difference = matrix_subtraction(output_activated, target, temp_buffer);
     Matrix output_derivd = matrix_apply_func(output, layer.activation.deriv, temp_buffer2);
-    deltas = matrix_hadamard_product(difference, output_derivd, layer.deltas.entries);
-    return layer;
+    layer.deltas = matrix_hadamard_product(difference, output_derivd, layer.deltas.entries);
 }
 
-NN_Layer NN_hidden_delta(const NN_Layer layer, const NN_Layer next_layer)
+void NN_hidden_delta(const NN_Layer layer, const NN_Layer next_layer)
 {
     for (int i = 0; i < layer.neurons; i++)
     {
@@ -181,10 +175,9 @@ NN_Layer NN_hidden_delta(const NN_Layer layer, const NN_Layer next_layer)
 
         matrix_set_entry(layer.deltas, i, 0, matrix_get_entry(layer.deltas, i, 0) + delta);
     }
-    return layer;
 }
 
-Neural_Network NN_backward_pass(Neural_Network net, const Matrix target)
+void NN_backward_pass(Neural_Network net, const Matrix target)
 {
     for (int i = net.num_layers - 1; i >= 0; i--)
     {
@@ -192,18 +185,17 @@ Neural_Network NN_backward_pass(Neural_Network net, const Matrix target)
 
         if (i == net.num_layers - 1)
         {
-            net.layers[i] = NN_output_delta(layer, target);
+            NN_output_delta(layer, target);
         }
         else
         {
             NN_Layer next_layer = net.layers[i + 1];
-            net.layers[i] = NN_hidden_delta(layer, next_layer);
+            NN_hidden_delta(layer, next_layer);
         }
     }
-    return net;
 }
 
-Neural_Network NN_update_weights(Neural_Network net, double learning_rate)
+void NN_update_weights(Neural_Network net, double learning_rate)
 {
     for (int i = 0; i < net.num_layers; ++i)
     {
@@ -238,7 +230,6 @@ Neural_Network NN_update_weights(Neural_Network net, double learning_rate)
 
         layer.weights = matrix_subtraction(layer.weights, weights_change, layer.weights.entries);
     }
-    return net;
 }
 
 double NN_MSE(Neural_Network net, const Matrix target)

@@ -13,6 +13,3 @@ The c file written so far cover a basic implementation of a general neural netwo
 ## Plans
 
 After finishing the creation of the pedal for general-purpose computing I will work towards hardware design and embedded system implementation.
-
-Current branch:
-Refactoring the NN_Tools library to be more straight forward in the handling of "inputs" and "outputs" of each layer. Also fix the handling of the application of activation functions to the ouput layer. Work on making functions use pointer-to-struct and void return.
