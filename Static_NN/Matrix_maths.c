@@ -1,34 +1,34 @@
 /**
  * @file Matrix_maths.c
  * @brief Matrix mathematics operations and utilities
- * 
+ *
  * This module provides functions for performing various mathematical operations
  * on matrices, including but not limited to:
  * - Matrix creation and initialization
  * - Matrix arithmetic operations (addition, subtraction, multiplication)
  * - Matrix printing for debugging purposes
- * 
+ *
  * @author Elis Parton
  * @date 30/11/25
  * @version 1.0
- * 
+ *
  * @note Manual memory management is used. Ensure proper allocation and
  *       deallocation of matrix structures to avoid memory leaks.
  */
 #include <stdio.h>
 #include <assert.h>
-#define NDEBUG
 /**A struct for a 2D Matrix*/
-typedef struct Matrix {
-    double* entries; /// Data in the Matrix
-    int rows; /// Rows in the Matrix
-    int cols; /// Collumns in the Matrix
+typedef struct Matrix
+{
+    double *entries; /// Data in the Matrix
+    int rows;        /// Rows in the Matrix
+    int cols;        /// Collumns in the Matrix
 } Matrix;
 
 //--------------------
-//matrix_create
+// matrix_create
 //--------------------
-//Construct a Matrix object that wraps an existing contiguous memory buffer.
+// Construct a Matrix object that wraps an existing contiguous memory buffer.
 //
 // Parameters:
 //  - row: Number of rows in the matrix.
@@ -46,7 +46,8 @@ typedef struct Matrix {
 // Notes:
 //  - No dynamic allocation occurs; this function simply wraps the provided memory.
 //  - No deeper validation beyond simple asserts is performed.
-Matrix matrix_create(int row, int col, double* buffer) {
+Matrix matrix_create(int row, int col, double *buffer)
+{
     assert(buffer != NULL);
     assert(col > 0);
     assert(row > 0);
@@ -59,9 +60,9 @@ Matrix matrix_create(int row, int col, double* buffer) {
 }
 
 //--------------------
-//matrix_get_entry
+// matrix_get_entry
 //--------------------
-//Retrieve the value stored at entry (r, c) of matrix m.
+// Retrieve the value stored at entry (r, c) of matrix m.
 //
 // Parameters:
 //  - m: Matrix to read from.
@@ -78,14 +79,15 @@ Matrix matrix_create(int row, int col, double* buffer) {
 // Notes:
 //  - Implemented as a static inline for minimal overhead.
 //  - No bounds checking is performed; out-of-range indices yield undefined behavior.
-static inline double matrix_get_entry(const Matrix m, int r, int c) {
+static inline double matrix_get_entry(const Matrix m, int r, int c)
+{
     return m.entries[r * m.cols + c];
 }
 
 //--------------------
-//matrix_set_entry
+// matrix_set_entry
 //--------------------
-//Store a value v into entry (r, c) of matrix m.
+// Store a value v into entry (r, c) of matrix m.
 //
 // Parameters:
 //  - m: Matrix to modify.
@@ -103,11 +105,25 @@ static inline double matrix_get_entry(const Matrix m, int r, int c) {
 // Notes:
 //  - Implemented as a static inline for efficiency.
 //  - No bounds checks are performed; behavior is undefined if indices are invalid.
-static inline void matrix_set_entry(Matrix m, int r, int c, double v) {
+static inline void matrix_set_entry(Matrix m, int r, int c, double v)
+{
     m.entries[r * m.cols + c] = v;
 }
 
-Matrix matrix_slice(const Matrix A, int row_start, int row_end, int col_start, int col_end, double* buffer) {
+Matrix matrix_set_all(Matrix A, double value)
+{
+    for (int r = 0; r < A.rows; r++)
+    {
+        for (int c = 0; c < A.cols; c++)
+        {
+            matrix_set_entry(A, r, c, value);
+        }
+    }
+    return A;
+}
+
+Matrix matrix_slice(const Matrix A, int row_start, int row_end, int col_start, int col_end, double *buffer)
+{
     assert(row_start >= 0 && row_start < A.rows);
     assert(row_end > row_start && row_end <= A.rows);
     assert(col_start >= 0 && col_start < A.cols);
@@ -117,8 +133,10 @@ Matrix matrix_slice(const Matrix A, int row_start, int row_end, int col_start, i
     int new_cols = col_end - col_start;
     Matrix S = matrix_create(new_rows, new_cols, buffer);
 
-    for (int r = 0; r < new_rows; r++) {
-        for (int c = 0; c < new_cols; c++) {
+    for (int r = 0; r < new_rows; r++)
+    {
+        for (int c = 0; c < new_cols; c++)
+        {
             double val = matrix_get_entry(A, row_start + r, col_start + c);
             matrix_set_entry(S, r, c, val);
         }
@@ -127,9 +145,9 @@ Matrix matrix_slice(const Matrix A, int row_start, int row_end, int col_start, i
 }
 
 //--------------------
-//matrix_print
+// matrix_print
 //--------------------
-//Print the contents of matrix A to stdout in a human-readable format.
+// Print the contents of matrix A to stdout in a human-readable format.
 //
 // Parameters:
 //  - A: Matrix to display.
@@ -144,12 +162,15 @@ Matrix matrix_slice(const Matrix A, int row_start, int row_end, int col_start, i
 //  - Intended primarily for debugging and inspection.
 //  - Prints row by row using fixed %f formatting for each entry.
 //  - Output layout is "Matrix (rows x cols)" followed by raw numeric entries.
-void matrix_print(Matrix A) {
+void matrix_print(Matrix A)
+{
     printf("Matrix (%d x %d):\n", A.rows, A.cols);
-    for (int r = 0; r < A.rows; r++) {
-        for (int c = 0; c < A.cols; c++) {
+    for (int r = 0; r < A.rows; r++)
+    {
+        for (int c = 0; c < A.cols; c++)
+        {
             double val = matrix_get_entry(A, r, c);
-            printf("%f ", val); 
+            printf("%f ", val);
         }
         printf("\n");
     }
@@ -157,9 +178,9 @@ void matrix_print(Matrix A) {
 }
 
 //--------------------
-//matrix_multiplication
+// matrix_multiplication
 //--------------------
-//Compute the matrix product C = A * B and return C.
+// Compute the matrix product C = A * B and return C.
 //
 // Parameters:
 //  - A: Left-hand operand matrix.
@@ -178,17 +199,21 @@ void matrix_print(Matrix A) {
 //  - No runtime checks/asserts are performed here; behavior is undefined if preconditions are violated.
 //  - Uses a straightforward triple-loop (O(n^3) in general) multiplication accumulating into a local double sum.
 //
-Matrix matrix_multiplication(const Matrix A, const Matrix B, double* buffer) {
-    //assert(A != NULL);
-    //assert(B != NULL);
-    //assert(A->cols == B->rows);
+Matrix matrix_multiplication(const Matrix A, const Matrix B, double *buffer)
+{
+    // assert(A != NULL);
+    // assert(B != NULL);
+    // assert(A->cols == B->rows);
 
-    Matrix C = matrix_create(A.rows, B.cols, buffer);   
+    Matrix C = matrix_create(A.rows, B.cols, buffer);
 
-    for (int r = 0; r < A.rows; r++) {
-        for (int c = 0; c < B.cols; c++) {
+    for (int r = 0; r < A.rows; r++)
+    {
+        for (int c = 0; c < B.cols; c++)
+        {
             double sum = 0.0;
-            for (int k = 0; k < A.cols; k++) {
+            for (int k = 0; k < A.cols; k++)
+            {
                 sum += matrix_get_entry(A, r, k) * matrix_get_entry(B, k, c);
             }
             matrix_set_entry(C, r, c, sum);
@@ -198,9 +223,9 @@ Matrix matrix_multiplication(const Matrix A, const Matrix B, double* buffer) {
 }
 
 //--------------------
-//matrix_addition
+// matrix_addition
 //--------------------
-//Compute the element-wise matrix sum C = A + B and return C.
+// Compute the element-wise matrix sum C = A + B and return C.
 //
 // Parameters:
 //  - A: First operand matrix.
@@ -218,16 +243,19 @@ Matrix matrix_multiplication(const Matrix A, const Matrix B, double* buffer) {
 // Notes:
 //  - No runtime checks/asserts are performed here; behavior is undefined if preconditions are violated.
 //  - Uses a simple double loop to accumulate A[r][c] + B[r][c] directly into the result.
-Matrix matrix_addition(const Matrix A, const Matrix B, double* buffer) {
-    //assert(A != NULL);
-    //assert(B != NULL);
-    //assert(A->cols == B->cols);
-    //assert(A->rows == B->rows);
+Matrix matrix_addition(const Matrix A, const Matrix B, double *buffer)
+{
+    // assert(A != NULL);
+    // assert(B != NULL);
+    // assert(A->cols == B->cols);
+    // assert(A->rows == B->rows);
 
     Matrix C = matrix_create(A.rows, A.cols, buffer);
 
-    for (int r = 0; r < A.rows; r++) {
-        for (int c = 0; c < A.cols; c++) {
+    for (int r = 0; r < A.rows; r++)
+    {
+        for (int c = 0; c < A.cols; c++)
+        {
             double sum = matrix_get_entry(A, r, c) + matrix_get_entry(B, r, c);
             matrix_set_entry(C, r, c, sum);
         }
@@ -236,9 +264,9 @@ Matrix matrix_addition(const Matrix A, const Matrix B, double* buffer) {
 }
 
 //--------------------
-//matrix_subtraction
+// matrix_subtraction
 //--------------------
-//Compute the element-wise matrix difference C = A - B and return C.
+// Compute the element-wise matrix difference C = A - B and return C.
 //
 // Parameters:
 //  - A: Left operand matrix.
@@ -256,21 +284,115 @@ Matrix matrix_addition(const Matrix A, const Matrix B, double* buffer) {
 // Notes:
 //  - No runtime checks/asserts are performed here; behavior is undefined if preconditions are violated.
 //  - Performs a direct element-wise subtraction A[r][c] - B[r][c] using a simple double loop.
-Matrix matrix_subtraction(const Matrix A, const Matrix B, double* buffer) {
-    
-    //assert(A != NULL);
-    //assert(B != NULL);
-    //assert(A->cols == B->cols);
-    //assert(A->rows == B->rows);
-    
-    
+Matrix matrix_subtraction(const Matrix A, const Matrix B, double *buffer)
+{
+
+    // assert(A != NULL);
+    // assert(B != NULL);
+    // assert(A->cols == B->cols);
+    // assert(A->rows == B->rows);
+
     Matrix C = matrix_create(A.rows, A.cols, buffer);
 
-    for (int r = 0; r < A.rows; r++) {
-        for (int c = 0; c < A.cols; c++) {
+    for (int r = 0; r < A.rows; r++)
+    {
+        for (int c = 0; c < A.cols; c++)
+        {
             double difference = matrix_get_entry(A, r, c) - matrix_get_entry(B, r, c);
             matrix_set_entry(C, r, c, difference);
         }
     }
     return C;
+}
+
+Matrix matrix_outer_product(const Matrix A, const Matrix B, double *buffer)
+{
+    assert(A.cols == 1);
+    assert(B.cols == 1);
+
+    Matrix C = matrix_create(A.rows, B.rows, buffer);
+
+    for (int r = 0; r < A.rows; r++)
+    {
+        for (int c = 0; c < B.rows; c++)
+        {
+            double product = matrix_get_entry(A, r, 0) * matrix_get_entry(B, c, 0);
+            matrix_set_entry(C, r, c, product);
+        }
+    }
+    return C;
+}
+
+Matrix matrix_hadamard_product(const Matrix A, const Matrix B, double *buffer)
+{
+    assert(A.cols == B.cols);
+    assert(A.rows == B.rows);
+
+    Matrix C = matrix_create(A.rows, A.cols, buffer);
+
+    for (int r = 0; r < A.rows; r++)
+    {
+        for (int c = 0; c < A.cols; c++)
+        {
+            double value = matrix_get_entry(A, r, c) * matrix_get_entry(B, r, c);
+            matrix_set_entry(C, r, c, value);
+        }
+    }
+    return C;
+}
+
+Matrix matrix_apply_func(const Matrix A, double (*func)(double), double *buffer)
+{
+    Matrix out = matrix_create(A.rows, A.cols, buffer);
+    for (int r = 0; r < A.rows; r++)
+    {
+        for (int c = 0; c < A.cols; c++)
+        {
+            double val = matrix_get_entry(A, r, c);
+            double result = func(val);
+            matrix_set_entry(out, r, c, result);
+        }
+    }
+    return out;
+}
+
+double matrix_grand_sum(const Matrix A)
+{
+    double sum = 0.0;
+    for (int r = 0; r < A.rows; r++)
+    {
+        for (int c = 0; c < A.cols; c++)
+        {
+            sum += matrix_get_entry(A, r, c);
+        }
+    }
+    return sum;
+}
+
+Matrix matrix_transpose(const Matrix A, double *buffer)
+{
+    Matrix T = matrix_create(A.cols, A.rows, buffer);
+    for (int r = 0; r < A.rows; r++)
+    {
+        for (int c = 0; c < A.cols; c++)
+        {
+            double val = matrix_get_entry(A, r, c);
+            matrix_set_entry(T, c, r, val);
+        }
+    }
+    return T;
+}
+
+Matrix matrix_scalar_product(const Matrix A, double scalar, double *buffer)
+{
+    Matrix S = matrix_create(A.rows, A.cols, buffer);
+    for (int r = 0; r < A.rows; r++)
+    {
+        for (int c = 0; c < A.cols; c++)
+        {
+            double val = matrix_get_entry(A, r, c) * scalar;
+            matrix_set_entry(S, r, c, val);
+        }
+    }
+    return S;
 }
