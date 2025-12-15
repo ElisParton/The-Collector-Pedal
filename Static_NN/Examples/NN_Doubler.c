@@ -71,10 +71,10 @@ int main(/*int argc, char *argv[]*/)
             NN_forward_pass(net);
             NN_backward_pass(net, target);
             error += NN_MSE(net, target);
+            NN_update_weights(net, 0.00001);
         }
         printf("Epoch %d, MSE: %f\n", epoch, error);
-        NN_update_weights(net, 0.00001);
-    }
+        }
     while (1)
     {
         double myNum;

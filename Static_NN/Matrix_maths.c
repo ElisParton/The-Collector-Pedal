@@ -342,7 +342,7 @@ Matrix matrix_hadamard_product(const Matrix A, const Matrix B, double *buffer)
     return C;
 }
 
-Matrix matrix_map_to(const Matrix A, double (*func)(double), double *buffer)
+Matrix matrix_apply_func(const Matrix A, double (*func)(double), double *buffer)
 {
     Matrix out = matrix_create(A.rows, A.cols, buffer);
     for (int r = 0; r < A.rows; r++)
@@ -355,4 +355,45 @@ Matrix matrix_map_to(const Matrix A, double (*func)(double), double *buffer)
         }
     }
     return out;
+}
+
+double matrix_grand_sum(const Matrix A)
+{
+    double sum = 0.0;
+    for (int r = 0; r < A.rows; r++)
+    {
+        for (int c = 0; c < A.cols; c++)
+        {
+            sum += matrix_get_entry(A, r, c);
+        }
+    }
+    return sum;
+}
+
+Matrix matrix_transpose(const Matrix A, double *buffer)
+{
+    Matrix T = matrix_create(A.cols, A.rows, buffer);
+    for (int r = 0; r < A.rows; r++)
+    {
+        for (int c = 0; c < A.cols; c++)
+        {
+            double val = matrix_get_entry(A, r, c);
+            matrix_set_entry(T, c, r, val);
+        }
+    }
+    return T;
+}
+
+Matrix matrix_scalar_product(const Matrix A, double scalar, double *buffer)
+{
+    Matrix S = matrix_create(A.rows, A.cols, buffer);
+    for (int r = 0; r < A.rows; r++)
+    {
+        for (int c = 0; c < A.cols; c++)
+        {
+            double val = matrix_get_entry(A, r, c) * scalar;
+            matrix_set_entry(S, r, c, val);
+        }
+    }
+    return S;
 }

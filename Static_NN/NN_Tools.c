@@ -102,7 +102,7 @@ Neural_Network NN_forward_pass(Neural_Network net)
         net.layers[i] = NN_forward(layer, inputs);
 
         // Apply activation function
-        matrix_map_to(layer.biased_weighted_sums, layer.activation.func, layer.activated_values.entries);
+        matrix_apply_func(layer.biased_weighted_sums, layer.activation.func, layer.activated_values.entries);
 
         // Set inputs for next layer
         inputs = layer.activated_values;
@@ -158,7 +158,7 @@ NN_Layer NN_output_delta(const NN_Layer layer, const Matrix target)
     Matrix deltas = layer.deltas;
 
     Matrix difference = matrix_subtraction(output_activated, target, temp_buffer);
-    Matrix output_derivd = matrix_map_to(output, layer.activation.deriv, temp_buffer2);
+    Matrix output_derivd = matrix_apply_func(output, layer.activation.deriv, temp_buffer2);
     deltas = matrix_hadamard_product(difference, output_derivd, layer.deltas.entries);
     return layer;
 }
@@ -168,17 +168,17 @@ NN_Layer NN_hidden_delta(const NN_Layer layer, const NN_Layer next_layer)
     for (int i = 0; i < layer.neurons; i++)
     {
         // Accumulate delta from next layer
-        double sum = 0.0;
-        for (int j = 0; j < next_layer.neurons; j++)
-        {
-            double next_delta = matrix_get_entry(next_layer.deltas, j, 0);
-            double weight = matrix_get_entry(next_layer.weights, j, i);
-            sum += next_delta * weight;
-        }
+        double temp_buffer[next_layer.neurons];
+        Matrix next_deltas = next_layer.deltas;
+        Matrix next_weights = matrix_slice(next_layer.weights, 0, next_layer.neurons, i, i + 1, temp_buffer);
+        double sum =
+            matrix_grand_sum(
+                matrix_multiplication(next_deltas, next_weights, temp_buffer));
 
         double output = matrix_get_entry(layer.biased_weighted_sums, i, 0);
         double output_activated = matrix_get_entry(layer.activated_values, i, 0);
         double delta = sum * layer.activation.deriv(output);
+
         matrix_set_entry(layer.deltas, i, 0, matrix_get_entry(layer.deltas, i, 0) + delta);
     }
     return layer;
@@ -202,42 +202,42 @@ Neural_Network NN_backward_pass(Neural_Network net, const Matrix target)
     }
     return net;
 }
-// Write a function to update weights and biases based on deltas and learning rate that uses matrix operations
+
 Neural_Network NN_update_weights(Neural_Network net, double learning_rate)
 {
     for (int i = 0; i < net.num_layers; ++i)
     {
-        // get pointer to layer so we modify the real structure, not a copy
-        NN_Layer *layer = &net.layers[i];
-
-        // previous activations: input layer (a0) or previous layer's activations
-        Matrix a_prev = (i == 0) ? net.input_layer.inputs : net.layers[i - 1].activated_values;
-
-        // sanity checks (remove if your matrix API already guarantees these)
-        assert(a_prev.cols == 1);
-        assert(a_prev.rows == layer->weights.cols); // #inputs == weight columns
-        assert(layer->weights.rows == layer->neurons);
-
-        for (int r = 0; r < layer->neurons; ++r)
+        Matrix prev_avals;
+        int prev_neurons;
+        NN_Layer layer = net.layers[i];
+        if (i == 0)
         {
-            double delta = matrix_get_entry(layer->deltas, r, 0);
-
-            // weight update: for each input column c
-            for (int c = 0; c < a_prev.rows; ++c)
-            {
-                double a_val = matrix_get_entry(a_prev, c, 0);
-                double w = matrix_get_entry(layer->weights, r, c);
-                double new_w = w - learning_rate * delta * a_val;
-                matrix_set_entry(layer->weights, r, c, new_w);
-            }
-
-            // bias update
-            double b = matrix_get_entry(layer->biases, r, 0);
-            double new_b = b - learning_rate * delta;
-            matrix_set_entry(layer->biases, r, 0, new_b);
+            prev_avals = net.input_layer.inputs;
+            prev_neurons = net.input_layer.neurons;
         }
-    }
+        else
+        {
+            prev_avals = net.layers[i].activated_values;
+            prev_neurons = net.layers[i].neurons;
+        }
 
+        double temp_buffer[prev_neurons];
+
+        double weights_change_buffer[layer.neurons * prev_neurons];
+        Matrix weights_change = matrix_create(layer.neurons, prev_neurons, weights_change_buffer);
+
+        // https://apxml.com/courses/introduction-to-neural-networks/chapter-4-backpropagation-gradient-descent/updating-weights-biases
+        weights_change =
+            matrix_scalar_product(
+                matrix_multiplication(
+                    layer.deltas,
+                    matrix_transpose(prev_avals, temp_buffer),
+                    weights_change_buffer),
+                learning_rate,
+                weights_change_buffer);
+
+        layer.weights = matrix_subtraction(layer.weights, weights_change, layer.weights.entries);
+    }
     return net;
 }
 

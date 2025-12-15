@@ -35,11 +35,15 @@ int main()
     double target_buf[] = {5};
     Matrix target = matrix_create(1, 1, target_buf);
     net.input_layer.inputs.entries[0] = 5.0;
+
+    double error;
     for (int i = 0; i < 100; i++)
     {
         net = NN_forward_pass(net);
         net = NN_backward_pass(net, target);
-        net = NN_update_weights(net, 0.01);
+        net = NN_update_weights(net, 0.05);
+        error = NN_MSE(net, target);
+        printf("Error at iteration %d: %f\n", i, error);
     }
     return 0;
 }
