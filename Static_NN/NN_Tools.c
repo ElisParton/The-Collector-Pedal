@@ -78,16 +78,16 @@ Neural_Network NN_create(int num_layers, NN_Input_Layer input, NN_Layer *layers)
     return net;
 }
 
-void NN_forward(NN_Layer layer, Matrix inputs)
+void NN_forward(NN_Layer *layer, const Matrix *inputs)
 {
-    assert(inputs.rows == layer.weights.cols);
-    assert(inputs.cols == 1);
-    assert(layer.weights.rows == layer.neurons);
+    assert(inputs->rows == layer->weights.cols);
+    assert(inputs->cols == 1);
+    assert(layer->weights.rows == layer->neurons);
 
-    double temp_buffer1[layer.neurons];
-    double temp_buffer2[layer.neurons];                                                                           // Temporary buffer for matrix multiplication
-    Matrix weighted_sum = matrix_multiplication(layer.weights, inputs, temp_buffer1);                             // Add weights * inputs
-    layer.biased_weighted_sums = matrix_addition(weighted_sum, layer.biases, layer.biased_weighted_sums.entries); // Add biases and store in layer
+    layer->biased_weighted_sums = matrix_addition(
+        matrix_multiplication(layer->weights, *inputs, layer->biased_weighted_sums.entries),
+        layer->biases,
+        layer->biased_weighted_sums.entries);
 }
 
 void NN_forward_pass(Neural_Network net)
@@ -97,7 +97,7 @@ void NN_forward_pass(Neural_Network net)
     {
         NN_Layer layer = net.layers[i];
         // Propagate through each layer
-        NN_forward(layer, inputs);
+        NN_forward(&layer, &inputs);
 
         // Apply activation function
         matrix_apply_func(layer.biased_weighted_sums, layer.activation.func, layer.activated_values.entries);

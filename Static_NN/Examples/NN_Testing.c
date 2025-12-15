@@ -1,4 +1,5 @@
-#include "../NN_Tools.c"
+#include "../NN_Tools.h"
+#include <stdio.h>
 #define LEARNING_RATE 0.05
 #define EPOCHS 1000
 

@@ -17,7 +17,6 @@
  */
 #include <stdio.h>
 #include <assert.h>
-#define NDEBUG
 /**A struct for a 2D Matrix*/
 typedef struct Matrix
 {
