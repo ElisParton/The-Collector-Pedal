@@ -1,7 +1,6 @@
 #include "Matrix_maths.h"
 #include <stdlib.h>
 #include <math.h>
-#include <assert.h>
 
 typedef struct ActivationFunction
 {
@@ -78,16 +77,13 @@ Neural_Network NN_create(int num_layers, NN_Input_Layer input, NN_Layer *layers)
     return net;
 }
 
-void NN_forward(NN_Layer *layer, const Matrix *inputs)
+void NN_forward(NN_Layer layer, const Matrix inputs)
 {
-    assert(inputs->rows == layer->weights.cols);
-    assert(inputs->cols == 1);
-    assert(layer->weights.rows == layer->neurons);
 
-    layer->biased_weighted_sums = matrix_addition(
-        matrix_multiplication(layer->weights, *inputs, layer->biased_weighted_sums.entries),
-        layer->biases,
-        layer->biased_weighted_sums.entries);
+    layer.biased_weighted_sums = matrix_addition(
+        matrix_multiplication(layer.weights, inputs, layer.biased_weighted_sums.entries),
+        layer.biases,
+        layer.biased_weighted_sums.entries);
 }
 
 void NN_forward_pass(Neural_Network net)
@@ -97,7 +93,7 @@ void NN_forward_pass(Neural_Network net)
     {
         NN_Layer layer = net.layers[i];
         // Propagate through each layer
-        NN_forward(&layer, &inputs);
+        NN_forward(layer, inputs);
 
         // Apply activation function
         matrix_apply_func(layer.biased_weighted_sums, layer.activation.func, layer.activated_values.entries);
@@ -116,20 +112,24 @@ double ReLU_1(double x)
     return (x > 0) ? 1 : 0;
 }
 
-// double Sigmoid(double x) {
-//     return 1.0 / (1.0 + exp(-x));
-// }
-// double Sigmoid_1(double x) {
-//     double sig = Sigmoid(x);
-//     return sig * (1 - sig);
-// }
+double Sigmoid(double x)
+{
+    return 1.0 / (1.0 + exp(-x));
+}
+double Sigmoid_1(double x)
+{
+    double sig = Sigmoid(x);
+    return sig * (1 - sig);
+}
 
-// double Tanh(double x) {
-//     return tanh(x);
-// }
-// double Tanh_1(double x) {
-//     return (1 / cosh(x))*(1 / cosh(x));
-// }
+double Tanh(double x)
+{
+    return tanh(x);
+}
+double Tanh_1(double x)
+{
+    return (1 / cosh(x)) * (1 / cosh(x));
+}
 
 double Linear(double x)
 {
