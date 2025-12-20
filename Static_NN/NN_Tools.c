@@ -1,4 +1,4 @@
-#include "Matrix_maths.h"
+#include "Matrix_maths.c"
 #include <stdlib.h>
 #include <math.h>
 
@@ -79,15 +79,16 @@ Neural_Network NN_create(int num_layers, NN_Input_Layer input, NN_Layer *layers)
 
 void NN_forward(NN_Layer layer, const Matrix inputs)
 {
-
     layer.biased_weighted_sums = matrix_addition(
         matrix_multiplication(layer.weights, inputs, layer.biased_weighted_sums.entries),
         layer.biases,
         layer.biased_weighted_sums.entries);
 }
 
-void NN_forward_pass(Neural_Network net)
+void NN_forward_pass(Neural_Network net, Matrix input)
 {
+    *net.input_layer.inputs.entries = *input.entries; // This might be expensive. Maybe figure out using pointers later.
+
     Matrix inputs = net.input_layer.inputs;
     for (int i = 0; i < net.num_layers; i++)
     {
@@ -137,11 +138,13 @@ double Linear(double x)
 }
 double Linear_1(double x)
 {
-    return 1;
+    return 1 + x - x; // Avoid compiler warning
 }
 
 ActivationFunction ReLU_Activation = {ReLU, ReLU_1};
 ActivationFunction Linear_Activation = {Linear, Linear_1};
+ActivationFunction Sigmoid_Activation = {Sigmoid, Sigmoid_1};
+ActivationFunction Tanh_Activation = {Tanh, Tanh_1};
 
 void NN_output_delta(NN_Layer layer, const Matrix target)
 {
@@ -170,10 +173,10 @@ void NN_hidden_delta(const NN_Layer layer, const NN_Layer next_layer)
                 matrix_multiplication(next_deltas, next_weights, temp_buffer));
 
         double output = matrix_get_entry(layer.biased_weighted_sums, i, 0);
-        double output_activated = matrix_get_entry(layer.activated_values, i, 0);
+        // double output_activated = matrix_get_entry(layer.activated_values, i, 0);
         double delta = sum * layer.activation.deriv(output);
 
-        matrix_set_entry(layer.deltas, i, 0, matrix_get_entry(layer.deltas, i, 0) + delta);
+        matrix_set_entry(layer.deltas, i, 0, delta);
     }
 }
 
@@ -209,8 +212,8 @@ void NN_update_weights(Neural_Network net, double learning_rate)
         }
         else
         {
-            prev_avals = net.layers[i].activated_values;
-            prev_neurons = net.layers[i].neurons;
+            prev_avals = net.layers[i - 1].activated_values;
+            prev_neurons = net.layers[i - 1].neurons;
         }
 
         double temp_buffer[prev_neurons];
@@ -229,6 +232,25 @@ void NN_update_weights(Neural_Network net, double learning_rate)
                 weights_change_buffer);
 
         layer.weights = matrix_subtraction(layer.weights, weights_change, layer.weights.entries);
+    }
+}
+
+void NN_update_biases(Neural_Network net, double learning_rate)
+{
+    for (int i = 0; i < net.num_layers; ++i)
+    {
+        NN_Layer layer = net.layers[i];
+
+        double biases_change_buffer[layer.neurons];
+        Matrix biases_change = matrix_create(layer.neurons, 1, biases_change_buffer);
+
+        biases_change =
+            matrix_scalar_product(
+                layer.deltas,
+                learning_rate,
+                biases_change_buffer);
+
+        layer.biases = matrix_subtraction(layer.biases, biases_change, layer.biases.entries);
     }
 }
 

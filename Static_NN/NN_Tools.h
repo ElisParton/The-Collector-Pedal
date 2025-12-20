@@ -69,7 +69,8 @@ void NN_forward(
     const Matrix *inputs);
 
 void NN_forward_pass(
-    Neural_Network net);
+    Neural_Network net,
+    Matrix input);
 
 /* =========================
    Backpropagation
@@ -115,5 +116,7 @@ double Linear_1(double x);
 
 extern ActivationFunction ReLU_Activation;
 extern ActivationFunction Linear_Activation;
+extern ActivationFunction Sigmoid_Activation;
+extern ActivationFunction Tanh_Activation;
 
 #endif /* NN_TOOLS_H */

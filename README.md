@@ -13,3 +13,7 @@ The c file written so far cover a basic implementation of a general neural netwo
 ## Plans
 
 After finishing the creation of the pedal for general-purpose computing I will work towards hardware design and embedded system implementation.
+
+# To do
+
+Write a makefile and use .h correctly.
